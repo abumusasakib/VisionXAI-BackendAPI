@@ -1,3 +1,78 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+*.coverage
+*.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# pyenv
+.python-version
+
+# virtualenv
+.venv/
+venv/
+ENV/
+env/
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Large model weights and checkpoints (do not commit heavy binaries)
+ImgCap/weights/
+*.ckpt*
+*.data-*
+*.index
+
+# Tools outputs
+tools/response.json
+tools/attention_out.png
+
+# Optional: fonts (if you prefer not to commit binaries, uncomment)
+# ImgCap/fonts/
 # Python-specific ignores
 *.py[cod]          # Compiled Python files
 __pycache__/       # Python cache directories

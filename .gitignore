@@ -1,0 +1,72 @@
+# Python-specific ignores
+*.py[cod]          # Compiled Python files
+__pycache__/       # Python cache directories
+*.pyo
+*.pyd
+
+# Virtual Environment
+.venv/
+env/
+ENV/
+venv/
+
+# IDE and Editor-specific ignores
+.idea/             # JetBrains IDEs (e.g., PyCharm)
+.vscode/           # Visual Studio Code
+*.swp              # Swap files (vi/vim)
+*.swo
+
+# Operating system files
+.DS_Store          # macOS
+Thumbs.db          # Windows
+desktop.ini        # Windows
+
+# Logs and debugging files
+*.log              # Log files
+*.out              # Output files
+*.err              # Error files
+
+# TensorFlow and large files
+**/checkpoint      # TensorFlow checkpoint files
+**/saved_model/    # TensorFlow saved models
+**/logs/           # TensorFlow logs (if using TensorBoard)
+*.h5               # Model files
+*.pb               # Protocol buffer files
+*.tflite           # TensorFlow Lite models
+*.onnx             # ONNX models
+
+# Uploads and temporary files
+uploaded_images/   # Directory for uploaded images
+tmp/               # Temporary files
+
+# Package files
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# Coverage and testing files
+.coverage          # Coverage reports
+*.cover
+*.py,cover
+coverage.xml
+nosetests.xml
+test-results.xml
+
+# Ignore backup and temporary files
+*.bak
+*.tmp
+*.old
+*.orig
+
+# Ignore environment and dependency files
+.env               # Environment variables
+.env.*             # Other environment files
+*.ini              # Configuration files (if not needed in repo)
+
+# FastAPI specific (optional)
+*.db               # Database files (if any)
+*.sqlite           # SQLite database files
+*.sqlite3          # SQLite database files
+.qodo

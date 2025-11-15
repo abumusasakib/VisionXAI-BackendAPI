@@ -1,0 +1,196 @@
+Report generated: 2025-11-04T16:09:26.927335 UTC
+Scanning for TensorFlow checkpoints under: ImgCap\weights
+
+== Tokenizer Inspection ==
+Tokenizer path: ImgCap\weights\tokenizer.pkl
+Head (preview): .............keras_preprocessing.text...Tokenizer...)..}.(..word_counts...collections...OrderedDict...)R.(..<start>.J.........................K................MyF............M."...............M.......................K.............M..............M.&..<end>.J................K[..............................K.............M....................K...................K...................K..........M6..........
+Detected keywords in tokenizer file: ['Tokenizer', 'keras', 'keras_preprocessing']
+Tokenizer unpickle_info:
+{
+  "type": "Tokenizer",
+  "word_index_len": 20910,
+  "word_index_sample": [
+    [
+      "<unk>",
+      1
+    ],
+    [
+      "<start>",
+      2
+    ],
+    [
+      "<end>",
+      3
+    ],
+    [
+      "একটি",
+      4
+    ],
+    [
+      "একজন",
+      5
+    ],
+    [
+      "আছে।",
+      6
+    ],
+    [
+      "আছে",
+      7
+    ],
+    [
+      "লোক",
+      8
+    ],
+    [
+      "কুকুর",
+      9
+    ],
+    [
+      "বসে",
+      10
+    ],
+    [
+      "এবং",
+      11
+    ],
+    [
+      "এক",
+      12
+    ],
+    [
+      "পুরুষ",
+      13
+    ],
+    [
+      "মানুষ",
+      14
+    ],
+    [
+      "মহিলা",
+      15
+    ],
+    [
+      "ও",
+      16
+    ],
+    [
+      "ছেলে",
+      17
+    ],
+    [
+      "দিয়ে",
+      18
+    ],
+    [
+      "করছে",
+      19
+    ],
+    [
+      "দাড়িয়ে",
+      20
+    ]
+  ],
+  "index_word_len": 20910,
+  "index_word_sample": [
+    [
+      1,
+      "<unk>"
+    ],
+    [
+      2,
+      "<start>"
+    ],
+    [
+      3,
+      "<end>"
+    ],
+    [
+      4,
+      "একটি"
+    ],
+    [
+      5,
+      "একজন"
+    ],
+    [
+      6,
+      "আছে।"
+    ],
+    [
+      7,
+      "আছে"
+    ],
+    [
+      8,
+      "লোক"
+    ],
+    [
+      9,
+      "কুকুর"
+    ],
+    [
+      10,
+      "বসে"
+    ],
+    [
+      11,
+      "এবং"
+    ],
+    [
+      12,
+      "এক"
+    ],
+    [
+      13,
+      "পুরুষ"
+    ],
+    [
+      14,
+      "মানুষ"
+    ],
+    [
+      15,
+      "মহিলা"
+    ],
+    [
+      16,
+      "ও"
+    ],
+    [
+      17,
+      "ছেলে"
+    ],
+    [
+      18,
+      "দিয়ে"
+    ],
+    [
+      19,
+      "করছে"
+    ],
+    [
+      20,
+      "দাড়িয়ে"
+    ]
+  ]
+}
+
+Directory: ImgCap\weights\best_model
+
+- Checkpoint prefix: ckpt-4
+  data:  ImgCap\weights\best_model\ckpt-4.data-00000-of-00001
+  index: ImgCap\weights\best_model\ckpt-4.index
+  SHA256: A3CA6F400F0C2479F31D4383E3705A7ECB108CB4D46B869B3D93260140254CE8
+
+Directory: ImgCap\weights\train
+
+- Checkpoint prefix: ckpt-1
+  data:  ImgCap\weights\train\ckpt-1.data-00000-of-00001
+  index: ImgCap\weights\train\ckpt-1.index
+  SHA256: 58D7D31787E4069C904F0CA5847D86B59D6C01668F459BD247B786A4CBFD41DD
+
+- Checkpoint prefix: ckpt-5
+  data:  ImgCap\weights\train\ckpt-5.data-00000-of-00001
+  index: ImgCap\weights\train\ckpt-5.index
+  SHA256: E4BAED79F46B35FA22A3F44D4B1D59C6DA654C8D8519ACCFF42E493C6A707BA4

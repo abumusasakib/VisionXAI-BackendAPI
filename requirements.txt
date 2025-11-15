@@ -1,0 +1,18 @@
+# FastAPI and Uvicorn (for building and serving the API)
+fastapi[all]==0.100.0  # FastAPI with all optional dependencies (like CORS, Swagger UI)
+uvicorn[standard]==0.23.0  # ASGI server for FastAPI
+
+# File uploads support
+python-multipart==0.0.6  # Required for file upload functionality in FastAPI
+
+# Numerical operations and TensorFlow dependencies
+numpy==1.21.5  # For handling numerical operations, required by TensorFlow
+tensorflow==2.8.0  # TensorFlow for image captioning, deep learning models
+
+# Logging
+loguru==0.7.2  # For improved logging capabilities (alternative to the default logging module)
+
+zeroconf==0.136.2
+Pillow==9.5.0
+keras_preprocessing==1.1.2
+matplotlib==3.7.1

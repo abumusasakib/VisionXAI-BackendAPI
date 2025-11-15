@@ -1,5 +1,7 @@
 # **Image Captioning API**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 This project provides an API to generate captions for images using a pre-trained image captioning model. The application is built with **FastAPI** and supports deployment via **Docker**, including **pyenv** support for Python version management and weight transfer support via PowerShell.
 
 ---

@@ -786,151 +786,86 @@ def generate_from_bytes(image_bytes):
                     topk_list.append((r, c, score))
                 attention_topk.append(topk_list)
 
-            # Create the multi-panel figure using matplotlib if available
+            # Create a single overlay figure using matplotlib if available. The overlay
+            # composites each token's attention map in a different color (no labels/titles).
             if pil_img is not None and any(m is not None for m in attention_maps):
                 try:
                     import matplotlib
                     matplotlib.use("Agg")
-                    # Try to register bundled fonts from ImgCap/fonts if present.
-                    try:
-                        from matplotlib import font_manager
-                        font_dir = os.path.join(os.path.dirname(__file__), "fonts")
-                        registered = []
-                        if os.path.isdir(font_dir):
-                            for fn in os.listdir(font_dir):
-                                if fn.lower().endswith(".ttf") or fn.lower().endswith(".otf"):
-                                    fp = os.path.join(font_dir, fn)
-                                    try:
-                                        # addfont exists on newer matplotlib; fontManager also exposes addfont
-                                        try:
-                                            font_manager.fontManager.addfont(fp)
-                                        except Exception:
-                                            try:
-                                                font_manager.addfont(fp)
-                                            except Exception:
-                                                pass
-                                        # Retrieve the font's internal name to use as family
-                                        try:
-                                            fp_name = font_manager.FontProperties(fname=fp).get_name()
-                                            if fp_name:
-                                                registered.append(fp_name)
-                                        except Exception:
-                                            pass
-                                    except Exception:
-                                        # ignore individual font failures
-                                        pass
-                        # If we found any fonts, prefer them; otherwise fall back to known families
-                        if registered:
-                            matplotlib.rcParams['font.family'] = registered + ['DejaVu Sans']
-                        else:
-                            matplotlib.rcParams['font.family'] = [
-                                'Noto Sans Bengali',
-                                'NotoSansBengali',
-                                'Noto Serif Bengali',
-                                'SolaimanLipi',
-                                'Kalpurush',
-                                'Mukti',
-                                'DejaVu Sans',
-                            ]
-                    except Exception:
-                        # If font manager isn't available or registration fails, continue with defaults
-                        try:
-                            matplotlib.rcParams['font.family'] = [
-                                'Noto Sans Bengali',
-                                'NotoSansBengali',
-                                'Noto Serif Bengali',
-                                'SolaimanLipi',
-                                'Kalpurush',
-                                'Mukti',
-                                'DejaVu Sans',
-                            ]
-                        except Exception:
-                            pass
-                    import matplotlib.pyplot as plt
+                    import matplotlib.cm as cm
 
-                    num_maps = len(tokens)
-                    cols = min(8, max(1, num_maps))
-                    rows = math.ceil(max(1, num_maps) / cols)
+                    # Prepare base image as float RGB (0..1)
+                    base_rgb = np.array(pil_img).astype(np.float32) / 255.0
 
-                    # Reserve one top row for the original image and a caption, then rows for attention maps
-                    fig_rows = 1 + rows
-                    fig_w = max(6, cols * 2.6)
-                    fig_h = max(4, fig_rows * 2.6)
-                    fig, axes = plt.subplots(fig_rows, cols, figsize=(fig_w, fig_h))
-                    axes = np.array(axes)
-                    if axes.ndim == 1:
-                        axes = np.expand_dims(axes, 0)
-
-                    # Top row: place the original image in the first cell only; hide others
-                    for cc in range(cols):
-                        ax0 = axes[0, cc]
-                        if cc == 0:
-                            ax0.imshow(pil_img)
-                            ax0.axis("off")
-                            # Put a clear title on the first cell
-                            ax0.set_title("Original Image", fontsize=11, pad=6)
-                        else:
-                            # Hide additional top-row axes to avoid duplicating the original image
-                            ax0.axis("off")
-
-                    # Put the predicted caption as a suptitle
-                    try:
-                        if caption:
-                            fig.suptitle(f"Pred: {caption}", fontsize=12, y=0.96)
-                    except Exception:
-                        pass
-
-                    # Subsequent rows: attention maps with token titles above each tile
-                    for idx in range(num_maps):
-                        r = 1 + (idx // cols)
-                        c = idx % cols
-                        ax = axes[r, c]
-                        att = attention_maps[idx] if idx < len(attention_maps) else None
-                        if att is None:
-                            ax.text(0.5, 0.5, "no-att", ha="center", va="center", fontsize=9)
-                            ax.axis("off")
+                    # Find grid shape from the first non-none attention map
+                    grid_rows = None
+                    grid_cols = None
+                    for a in attention_maps:
+                        if a is None:
                             continue
+                        key_len = int(a.shape[0])
+                        side = int(math.sqrt(key_len))
+                        if side * side == key_len:
+                            grid_rows = side
+                            grid_cols = side
+                        else:
+                            grid_rows = 1
+                            grid_cols = key_len
+                        break
 
-                        key_len = att.shape[0]
+                    # Composite overlays sequentially using distinct colors from a qualitative cmap
+                    cmap = matplotlib.cm.get_cmap("tab20")
+                    composite = base_rgb.copy()
+
+                    # Strength factor controls how strong each overlay is; smaller avoids saturation
+                    overlay_strength = 0.55
+
+                    for idx, att in enumerate(attention_maps):
+                        if att is None:
+                            continue
+                        key_len = int(att.shape[0])
                         side = int(math.sqrt(key_len))
                         if side * side == key_len:
                             att_grid = att.reshape((side, side))
                         else:
                             att_grid = att.reshape((1, key_len))
 
+                        # Normalize attention map to 0..1
                         att_norm = (att_grid - att_grid.min()) / (att_grid.max() - att_grid.min() + 1e-9)
                         att_img = Image.fromarray(np.uint8(255 * att_norm)).resize(pil_img.size, Image.BILINEAR)
+                        att_arr = np.array(att_img).astype(np.float32) / 255.0
 
-                        ax.imshow(pil_img)
-                        ax.imshow(att_img, cmap="viridis", alpha=0.6)
+                        # Pick a color for this token from the colormap
+                        color = np.array(cmap(idx % cmap.N)[:3], dtype=np.float32)
 
-                        mean_val = attention_means[idx] if idx < len(attention_means) else None
-                        title = tokens[idx] if idx < len(tokens) else f"t{idx}"
-                        if mean_val is not None:
-                            title = f"{title} ({mean_val:.3f})"
-                        # Put the token label as a title above the tile; larger font for readability
-                        ax.set_title(title, fontsize=9, pad=6)
-                        ax.axis("off")
+                        # Create overlay RGB image (H,W,3) = att_arr[...,None] * color
+                        overlay_rgb = np.dstack([att_arr * c for c in color])
+                        alpha_map = att_arr * overlay_strength
 
-                    # Hide any unused axes in the grid
-                    total = rows * cols
-                    for extra in range(num_maps, total):
-                        rr = 1 + (extra // cols)
-                        cc = extra % cols
-                        try:
-                            axes[rr, cc].axis("off")
-                        except Exception:
-                            pass
+                        # Alpha composite: composite = composite*(1-alpha) + overlay_rgb*alpha
+                        alpha_exp = np.expand_dims(alpha_map, axis=2)
+                        composite = composite * (1.0 - alpha_exp) + overlay_rgb * alpha_exp
 
-                    plt.tight_layout(rect=[0, 0, 1, 0.95])
+                    # Clip and convert back to uint8
+                    composite = np.clip(composite * 255.0, 0, 255).astype(np.uint8)
+                    out_img = Image.fromarray(composite)
+
                     buf = io.BytesIO()
-                    fig.savefig(buf, format="png", bbox_inches="tight", dpi=150)
-                    plt.close(fig)
+                    out_img.save(buf, format="PNG")
                     buf.seek(0)
                     attention_image_b64 = base64.b64encode(buf.read()).decode("utf-8")
+
+                    # Store grid metadata (rows, cols) for client grid override
+                    if grid_rows is None or grid_cols is None:
+                        attention_grid = None
+                        attention_shape = None
+                    else:
+                        attention_grid = [int(grid_rows), int(grid_cols)]
+                        attention_shape = {"rows": int(grid_rows), "cols": int(grid_cols)}
+
                 except Exception as e:
                     logger.debug(f"Matplotlib plotting failed, falling back to PIL overlay: {e}")
-                    # Fallback: overlay last available attention map onto the image (PIL)
+                    # Fallback behavior: create a single overlay from the last available attention map
                     last_att = None
                     for a in reversed(attention_maps):
                         if a is not None:
@@ -941,8 +876,12 @@ def generate_from_bytes(image_bytes):
                         side = int(math.sqrt(key_len))
                         if side * side == key_len:
                             att_grid = last_att.reshape((side, side))
+                            attention_grid = [side, side]
+                            attention_shape = {"rows": side, "cols": side}
                         else:
                             att_grid = last_att.reshape((1, key_len))
+                            attention_grid = [1, key_len]
+                            attention_shape = {"rows": 1, "cols": key_len}
 
                         att_norm = (att_grid - att_grid.min()) / (att_grid.max() - att_grid.min() + 1e-9)
                         att_img = Image.fromarray(np.uint8(255 * att_norm)).resize(pil_img.size, Image.BILINEAR).convert("L")
@@ -955,8 +894,30 @@ def generate_from_bytes(image_bytes):
                         composed.save(buf, format="PNG")
                         buf.seek(0)
                         attention_image_b64 = base64.b64encode(buf.read()).decode("utf-8")
+                    else:
+                        attention_grid = None
+                        attention_shape = None
         except Exception as e:
             logger.error(f"Failed to build attention image or metrics: {e}")
+
+        # Convert attention_topk tuples into structured dicts for client consumption
+        attention_topk_items = []
+        for lst in attention_topk:
+            item_list = []
+            for entry in lst:
+                try:
+                    r, c, sc = entry
+                    item_list.append({"row": int(r), "col": int(c), "score": float(sc)})
+                except Exception:
+                    # If entry already dict-like or malformed, try to coerce
+                    try:
+                        item_list.append({"row": int(entry[0]), "col": int(entry[1]), "score": float(entry[2])})
+                    except Exception:
+                        continue
+            attention_topk_items.append(item_list)
+
+        # Prepare attention_image_bytes (base64) for clients that expect a key named _bytes
+        attention_image_bytes_b64 = attention_image_b64
 
         # Return structured output including attention metrics
         return {
@@ -965,8 +926,12 @@ def generate_from_bytes(image_bytes):
             "tokens": tokens,
             "token_scores": token_scores,
             "attention_image": attention_image_b64,
+            "attention_image_bytes": attention_image_bytes_b64,
             "attention_means": attention_means,
             "attention_topk": attention_topk,
+            "attention_topk_items": attention_topk_items,
+            "attention_grid": attention_grid if 'attention_grid' in locals() else None,
+            "attention_shape": attention_shape if 'attention_shape' in locals() else None,
         }
     except Exception as e:
         logger.error(f"Error generating caption from bytes: {e}")

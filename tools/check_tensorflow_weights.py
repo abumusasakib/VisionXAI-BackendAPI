@@ -184,7 +184,7 @@ def check_tensorflow_weights(directory, expected_sha256=None, try_load=False, sh
                 elif expected_sha256:
                     report_lines.append("  ⚠️ Does NOT match expected SHA256")
 
-            # Optionally try to load checkpoint variables using TensorFlow
+            # try to load checkpoint variables using TensorFlow
             if try_load:
                 try:
                     import tensorflow as tf

@@ -194,10 +194,12 @@ def generate_caption():
     image_name = files[0]  # There should be only one file in the folder
     image_path = os.path.join(UPLOAD_FOLDER, image_name)
 
-    # Generate the caption
+    # Generate the caption using the bytes-based generator to get structured output
     try:
         logger.info(f"Generating caption for image: {image_path}")
-        caption = cap.generate(image_path)
+        with open(image_path, "rb") as f:
+            image_bytes = f.read()
+        result = cap.generate_from_bytes(image_bytes)
     except Exception as e:
         logger.error(f"Caption generation failed for {image_path}: {str(e)}")
         raise HTTPException(
@@ -205,7 +207,12 @@ def generate_caption():
         )
 
     logger.info(f"Caption generated successfully for {image_path}")
-    return {"image": image_name, "caption": caption}
+    # If structured dict returned, merge with filename; otherwise return simple caption
+    if isinstance(result, dict):
+        resp = {"image": image_name}
+        resp.update(result)
+        return resp
+    return {"image": image_name, "caption": result}
 
 
 if __name__ == "__main__":

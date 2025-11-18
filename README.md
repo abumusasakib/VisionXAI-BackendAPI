@@ -323,3 +323,25 @@ Future<String> uploadAndCaption(File imageFile) async {
 ```
 
 If you prefer the two-step flow (upload then GET /caption), call POST `/upload` first, then call GET `/caption` to fetch the caption for the previously uploaded file.
+
+---
+
+## 🧰 Tools
+
+This repository includes several small helper scripts in the `tools/` directory to assist with local testing and verification:
+
+- `tools/run_inference_sample.py`: Runs a local, in-Python inference invocation by importing `ImgCap.captioner.generate_from_bytes`. It looks for an image in `uploaded_images/`, runs the captioner, and writes results to `tools/response.json`. If an attention image is produced it is written to `tools/attention_out.png`.
+
+  Usage (from repository root):
+
+  ```powershell
+  python tools/run_inference_sample.py
+  ```
+
+  Notes:
+  - This script imports your local Python environment's packages; ensure dependencies from `requirements.txt` are installed.
+  - The script will print a JSON summary to stdout and save `tools/response.json` on success.
+
+- `tools/check_tensorflow_weights.py`: A small utility to inspect TensorFlow checkpoint contents and report shapes/keys. Use it to verify that the model weight files under `ImgCap/weights/` are readable by TensorFlow.
+
+If you run into errors when running these tools (missing packages, incompatible checkpoint formats), see the README's setup instructions and ensure you have the required packages installed and the correct model files present under `ImgCap/weights/`.

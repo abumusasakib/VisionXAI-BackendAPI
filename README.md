@@ -121,7 +121,7 @@ Recommended Python version: **3.8.5**
     final tokenScores = (map['token_scores'] as List?)?.cast<double>();
     final attentionBase64 = map['attention_image'] as String?;
 
-    // If attention image is present you can decode it client-side (example omitted).
+    // If attention image is present you can decode it client-side.
     return caption ?? '';
     ```
 

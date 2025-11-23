@@ -662,7 +662,9 @@ def generate(img_path):
             if sampled_token is None:
                 logger.warning(f"Token index {sampled_token_index} not found in index_lookup")
                 break
-            if sampled_token in ("[UNK]", "<pad>", ""):
+            # Filter out unknown / pad tokens (case-insensitive variants)
+            sval = str(sampled_token).strip()
+            if sval == "" or sval.lower() in ("[unk]", "<unk>", "[pad]", "<pad>"):
                 input_id = sampled_token_index
                 continue
             if sampled_token == "<end>":
@@ -741,7 +743,11 @@ def generate_from_bytes(image_bytes):
             if index_lookup is None:
                 break
             sampled_token = index_lookup.get(sampled_token_index, None)
-            if sampled_token is None or sampled_token in ("[UNK]", "<pad>", ""):
+            if sampled_token is None:
+                input_id = sampled_token_index
+                continue
+            sval = str(sampled_token).strip()
+            if sval == "" or sval.lower() in ("[unk]", "<unk>", "[pad]", "<pad>"):
                 input_id = sampled_token_index
                 continue
             if sampled_token == "<end>":
@@ -901,8 +907,25 @@ def generate_from_bytes(image_bytes):
             logger.error(f"Failed to build attention image or metrics: {e}")
 
         # Convert attention_topk tuples into structured dicts for client consumption
+        # Also ensure any unknown/pad tokens are filtered out from attention outputs
+        unknown_set = {"[unk]", "<unk>", "[pad]", "<pad>"}
+
+        # Filter the raw attention_topk to align with the accepted `tokens` list
+        # (safety in case any mismatch occurred during generation)
+        filtered_attention_topk = []
+        for tok, topk_lst in zip(tokens, attention_topk):
+            sval = str(tok).strip().lower()
+            if sval == "" or sval in unknown_set:
+                # skip entries corresponding to unknown/pad tokens
+                continue
+            filtered_attention_topk.append(topk_lst)
+        attention_topk = filtered_attention_topk
+
         attention_topk_items = []
-        for lst in attention_topk:
+        for tok, lst in zip(tokens, attention_topk):
+            sval = str(tok).strip().lower()
+            if sval == "" or sval in unknown_set:
+                continue
             item_list = []
             for entry in lst:
                 try:

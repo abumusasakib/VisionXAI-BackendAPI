@@ -139,6 +139,10 @@ Example shape:
 - `attention_grid` is an optional two-element list `[rows, cols]` giving the spatial grid dimensions the attention maps were computed on (useful for overlay markers).
 - `attention_shape` is an optional map `{ "rows": <int>, "cols": <int> }` duplicating the same information for clients that prefer named fields.
 
+- `attention_colors`: an optional list of hex color strings (e.g. `["#1f77b4", "#aec7e8", ...]`) aligned with the returned `tokens` list. Clients can use this list to deterministically color token markers when rendering overlays. This value may be `null` if the server could not compute colors in the runtime environment.
+
+- `attention_color_map`: an optional mapping of token string -> hex color (e.g. `{ "একটি": "#1f77b4", "সুন্দর": "#aec7e8" }`). This is provided as a convenience so clients can directly look up a token's color without preserving token indices. It will be `null` when `attention_colors` is not provided.
+
 ## Client decoding notes (Flutter)
 
 - The server returns `attention_image_bytes` as a base64-encoded string (JSON-safe). On the Flutter side decode it like:
@@ -171,6 +175,38 @@ if (rawTopk is List) {
     topk = null;
   }
 }
+```
+
+// Color decoding example: use `attention_color_map` when available, otherwise fall back to `attention_colors` + `tokens`.
+```dart
+import 'dart:ui';
+
+List<String>? colors = (response['attention_colors'] as List?)?.cast<String>();
+Map<String, dynamic>? colorMap = (response['attention_color_map'] as Map?)?.cast<String, dynamic>();
+List<String>? tokens = (response['tokens'] as List?)?.cast<String>();
+
+Color parseHex(String hex) {
+  // Expect hex in form '#rrggbb'
+  hex = hex.replaceFirst('#', '');
+  return Color(int.parse('0xff' + hex));
+}
+
+Map<String, Color> tokenColors = {};
+if (colorMap != null) {
+  colorMap.forEach((tok, hex) {
+    try {
+      tokenColors[tok] = parseHex(hex as String);
+    } catch (_) {}
+  });
+} else if (colors != null && tokens != null) {
+  for (var i = 0; i < tokens.length && i < colors.length; i++) {
+    try {
+      tokenColors[tokens[i]] = parseHex(colors[i]);
+    } catch (_) {}
+  }
+}
+
+// Now `tokenColors` maps token -> Color and can be used when drawing markers for each token.
 ```
 
 **Errors**:

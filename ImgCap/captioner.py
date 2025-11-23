@@ -765,6 +765,7 @@ def generate_from_bytes(image_bytes):
         attention_image_b64 = None
         attention_means = []
         attention_topk = []
+        attention_colors = None
         try:
             # Compute per-token attention metrics (mean and top-k grid locations)
             for a in attention_maps:
@@ -820,11 +821,20 @@ def generate_from_bytes(image_bytes):
                         break
 
                     # Composite overlays sequentially using distinct colors from a qualitative cmap
+                    # Compute a deterministic color list for each token so the client can reuse the same mapping.
                     cmap = matplotlib.cm.get_cmap("tab20")
                     composite = base_rgb.copy()
 
                     # Strength factor controls how strong each overlay is; smaller avoids saturation
                     overlay_strength = 0.55
+
+                    # Build a color palette aligned with the number of attention maps (tokens)
+                    colors_rgb = []
+                    for i in range(len(attention_maps)):
+                        colors_rgb.append(np.array(cmap(i % cmap.N)[:3], dtype=np.float32))
+
+                    # Convert RGB floats to hex strings for clients
+                    attention_colors = ["#%02x%02x%02x" % tuple((255 * c).astype(int)) for c in colors_rgb]
 
                     for idx, att in enumerate(attention_maps):
                         if att is None:
@@ -841,8 +851,8 @@ def generate_from_bytes(image_bytes):
                         att_img = Image.fromarray(np.uint8(255 * att_norm)).resize(pil_img.size, Image.BILINEAR)
                         att_arr = np.array(att_img).astype(np.float32) / 255.0
 
-                        # Pick a color for this token from the colormap
-                        color = np.array(cmap(idx % cmap.N)[:3], dtype=np.float32)
+                        # Pick a precomputed color for this token from the palette
+                        color = colors_rgb[idx]
 
                         # Create overlay RGB image (H,W,3) = att_arr[...,None] * color
                         overlay_rgb = np.dstack([att_arr * c for c in color])
@@ -900,6 +910,8 @@ def generate_from_bytes(image_bytes):
                         composed.save(buf, format="PNG")
                         buf.seek(0)
                         attention_image_b64 = base64.b64encode(buf.read()).decode("utf-8")
+                        # Assign a single fallback color for all tokens (red)
+                        attention_colors = ["#ff0000"] * len(tokens)
                     else:
                         attention_grid = None
                         attention_shape = None
@@ -955,6 +967,8 @@ def generate_from_bytes(image_bytes):
             "attention_topk_items": attention_topk_items,
             "attention_grid": attention_grid if 'attention_grid' in locals() else None,
             "attention_shape": attention_shape if 'attention_shape' in locals() else None,
+            "attention_colors": attention_colors,
+            "attention_color_map": (dict(zip(tokens, attention_colors)) if attention_colors is not None else None),
         }
     except Exception as e:
         logger.error(f"Error generating caption from bytes: {e}")

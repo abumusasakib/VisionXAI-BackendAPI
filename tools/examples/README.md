@@ -6,7 +6,8 @@ This lightweight example shows how a Flutter client can:
 - Parse `attention_color_map` (preferred) or `attention_colors` + `tokens` fallback.
 - Render token markers at `attention_topk_items` locations using a `CustomPainter` overlay.
 
-Notes:
+## Notes
+
 - This example is intentionally minimal — adapt to your app's state management and UI patterns.
 - `attention_grid` (rows, cols) is required to map grid coordinates -> pixel positions.
 

@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "messages": [
+    "Decoded image written to D:\\courses\\graduate project\\xai new project\\final project\\VisionXAI-BackendAPI\\tools\\attention_decoded.png",
+    "attention_topk_items schema OK",
+    "attention_grid present: [8, 8]; valid=True",
+    "attention_shape present: {'rows': 8, 'cols': 8}; valid=True"
+  ],
+  "topk_validation_messages": [],
+  "attention_grid": [
+    8,
+    8
+  ],
+  "attention_grid_valid": true,
+  "attention_shape": {
+    "rows": 8,
+    "cols": 8
+  },
+  "attention_shape_valid": true,
+  "decoded_image": "D:\\courses\\graduate project\\xai new project\\final project\\VisionXAI-BackendAPI\\tools\\attention_decoded.png"
+}

@@ -46,6 +46,57 @@ The API returns an enriched JSON object. Minimal example (happy path):
     - `attention_colors` (optional): the server may also return `attention_colors`, a list of hex color strings aligned with the `tokens` list (for example `["#1f77b4", "#aec7e8", ...]`).
       Clients can use this list or the convenience map `attention_color_map` (token -> hex) to deterministically color per-token markers when rendering attention overlays. These fields are `null` if the server could not compute colors in the runtime environment.
 
+### Flutter: rendering token markers using the color map
+
+Below is a compact example showing how to use `attention_color_map` (preferred) or `attention_colors`+`tokens` to draw circular markers for each token's top-k locations using a `CustomPainter`. This example assumes you already decoded the `attention_image` into an `Image` widget and know the rendered image size and the `attention_grid` (rows, cols).
+
+```dart
+// tokenColors: Map<String, Color> as shown earlier (parsed from hex)
+// topkItems: List<List<Map<String, dynamic>>> = response['attention_topk_items']
+// grid: List<int> = response['attention_grid'] ?? [rows, cols]
+
+class TokenMarkerPainter extends CustomPainter {
+  final ui.Image backgroundImage;
+  final List<List<Map<String, dynamic>>> topkItems;
+  final List<String> tokens;
+  final Map<String, Color> tokenColors;
+  final int rows;
+  final int cols;
+
+  TokenMarkerPainter({required this.backgroundImage, required this.topkItems, required this.tokens, required this.tokenColors, required this.rows, required this.cols});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Draw background image stretched to available size
+    paintImage(canvas: canvas, rect: Offset.zero & size, image: backgroundImage, fit: BoxFit.fill);
+
+    final cellW = size.width / cols;
+    final cellH = size.height / rows;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var i = 0; i < topkItems.length && i < tokens.length; i++) {
+      final t = tokens[i];
+      final color = tokenColors[t] ?? Colors.red;
+      paint.color = color.withOpacity(0.9);
+
+      for (var item in topkItems[i]) {
+        final r = (item['row'] as num).toDouble();
+        final c = (item['col'] as num).toDouble();
+        final cx = (c + 0.5) * cellW;
+        final cy = (r + 0.5) * cellH;
+        canvas.drawCircle(Offset(cx, cy), math.min(cellW, cellH) * 0.12, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+```
+
+This minimal example shows how to map grid coordinates into pixel positions and draw colored markers per token. For better UX, consider drawing outlines, labels, or varying marker sizes by `score`.
+
 ## **Folder Structure**
 
 ```text

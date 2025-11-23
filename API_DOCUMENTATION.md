@@ -178,6 +178,7 @@ if (rawTopk is List) {
 ```
 
 // Color decoding example: use `attention_color_map` when available, otherwise fall back to `attention_colors` + `tokens`.
+
 ```dart
 import 'dart:ui';
 

@@ -70,6 +70,11 @@ ImgCap/weights/
 # Tools outputs
 tools/response.json
 tools/attention_out.png
+tools/attention_decoded.png
+tools/decode_report.json
+# Ignore any other generated tool artifacts (png/json) to avoid committing outputs
+/tools/*.png
+/tools/*.json
 
 # Optional: fonts (if you prefer not to commit binaries, uncomment)
 # ImgCap/fonts/

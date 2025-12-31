@@ -94,8 +94,7 @@ async def lifespan(app: FastAPI):
         logger.info("mDNS service unregistered.")
 
 
-# Do not re-initialize `app` here — reusing the original `app` ensures middleware
-# (including CORS) stays registered. Register a shutdown handler on the existing
+# Register a shutdown handler on the existing
 # FastAPI instance to clean up the mDNS service instead of replacing `app`.
 @app.on_event("shutdown")
 async def _on_shutdown():

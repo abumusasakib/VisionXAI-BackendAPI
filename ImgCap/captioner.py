@@ -117,6 +117,10 @@ else:
         def custom_standardization(input_string):
             lowercase = tf.strings.lower(input_string)
             return tf.strings.regex_replace(lowercase, "[%s]" % re.escape(strip_chars), "")
+        
+        # Using raw string for strip_chars
+        strip_chars = r"!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
+        strip_chars = strip_chars.replace("<", "").replace(">", "")
 
         # Initialize TextVectorization
         try:
@@ -184,10 +188,6 @@ def get_cnn_model():
         base_output = base_model.output
 
         # Flatten spatial dimensions into sequence: (None, 64, 2048)
-        # NOTE: Do NOT pre-project to EMBED_DIM here - the checkpoint's
-        # encoder expects raw Inception features of size 2048 and will
-        # perform the projection (encoder.fc). Keeping projection here
-        # causes a shape mismatch with checkpointed variables.
         seq = layers.Reshape((-1, int(base_output.shape[-1])))(base_output)
 
         cnn_model = keras.models.Model(base_model.input, seq)
